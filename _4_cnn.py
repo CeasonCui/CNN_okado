@@ -119,11 +119,11 @@ img_test, label_test = ReadOwnData.read_and_decode("triangle_and_others_test.tfr
 
 #使用shuffle_batch可以随机打乱输入
 img_batch, label_batch = tf.train.shuffle_batch([img, label],
-                                                batch_size=batch_size, capacity=32,
-                                                min_after_dequeue=1000)
+                                                batch_size=batch_size, capacity=64,
+                                                min_after_dequeue=32)
 img_test, label_test = tf.train.shuffle_batch([img_test, label_test],
-                                                batch_size=batch_size, capacity=32,
-                                                min_after_dequeue=1000)
+                                                batch_size=batch_size, capacity=64,
+                                                min_after_dequeue=32)
 
 init = tf.initialize_all_variables()
 t_vars = tf.trainable_variables()
