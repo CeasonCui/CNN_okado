@@ -47,8 +47,8 @@ def max_pool_2x2(x):
 
 # define placeholder for inputs to network
 with tf.name_scope('inputs'):
-    xs = tf.placeholder(tf.float32, [32, 64, 64])/255.   # 64x64
-    ys = tf.placeholder(tf.float32, [32, 2])
+    xs = tf.placeholder(tf.float32, [100, 64, 64])/255.   # 64x64
+    ys = tf.placeholder(tf.float32, [100, 2])
     keep_prob = tf.placeholder(tf.float32)
 
 with tf.name_scope('image_reshape'):
