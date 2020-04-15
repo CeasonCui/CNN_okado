@@ -2,7 +2,7 @@ from __future__ import print_function
 import os 
 import tensorflow as tf
 from PIL import Image  
-import matplotlib.pyplot as plt 
+import matplotlib.pyplot as plt
 import numpy as np
 import ReadOwnData
 #from tensorflow.examples.tutorials.mnist import input_data
