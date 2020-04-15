@@ -1,3 +1,8 @@
+MNIST_data/
+ellipse/
+square/
+triangle/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

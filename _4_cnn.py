@@ -1,0 +1,180 @@
+from __future__ import print_function
+import os 
+import tensorflow as tf
+from PIL import Image  
+import matplotlib.pyplot as plt 
+import numpy as np
+import ReadOwnData
+#from tensorflow.examples.tutorials.mnist import input_data
+# number 1 to 10 data
+#mnist = input_data.read_data_sets('MNIST_data', one_hot=True)
+batch_size = 32
+n_batch = int(8960*3*0.8 / batch_size)
+channel = 32
+epoch = 200
+def one_hot(labels,Label_class):
+    one_hot_label = np.array([[int(i == int(labels[j])) for i in range(Label_class)] for j in range(len(labels))])   
+    return one_hot_label
+
+def compute_accuracy(v_xs, v_ys):
+    global prediction
+    y_pre = sess.run(prediction, feed_dict={xs: v_xs, keep_prob: 1})
+    correct_prediction = tf.equal(tf.argmax(y_pre,1), tf.argmax(v_ys,1))
+    accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+    result = sess.run(accuracy, feed_dict={xs: v_xs, ys: v_ys, keep_prob: 1})
+    return result
+
+def weight_variable(shape):
+    with tf.name_scope('weight'):
+        initial = tf.truncated_normal(shape, stddev=0.1)
+        return tf.Variable(initial)
+
+def bias_variable(shape):
+    with tf.name_scope('bias'):
+        initial = tf.constant(0.1, shape=shape)
+        return tf.Variable(initial)
+
+def conv2d(x, W):
+    # stride [1, x_movement, y_movement, 1]
+    # Must have strides[0] = strides[3] = 1
+    with tf.name_scope('conv2d'):
+        return tf.nn.conv2d(x, W, strides=[1, 1, 1, 1], padding='SAME')
+
+def max_pool_2x2(x):
+    # stride [1, x_movement, y_movement, 1]
+    with tf.name_scope('man_pool_2x2'):
+        return tf.nn.max_pool(x, ksize=[1,2,2,1], strides=[1,2,2,1], padding='SAME')
+
+# define placeholder for inputs to network
+with tf.name_scope('inputs'):
+    xs = tf.placeholder(tf.float32, [32, 64, 64])/255.   # 64x64
+    ys = tf.placeholder(tf.float32, [32, 2])
+    keep_prob = tf.placeholder(tf.float32)
+
+with tf.name_scope('image_reshape'):
+    x_image = tf.reshape(xs, [-1, 64, 64, 1])
+# print(x_image.shape)  # [n_samples, 64,64,1]
+
+## conv1 layer ##
+with tf.name_scope('conv1_layer'):
+    W_conv1 = weight_variable([3,3, 1,32]) # patch 3x3, in size 1, out size 32
+    b_conv1 = bias_variable([channel])
+    h_conv1 = tf.nn.relu(conv2d(x_image, W_conv1) + b_conv1) # output size 64x64x32
+    h_pool1 = max_pool_2x2(h_conv1)                          # output size 32x32x32
+
+## conv2 layer ##
+with tf.name_scope('conv2_layer'):
+    W_conv2 = weight_variable([3,3, 32, 64]) # patch 3x3, in size 32, out size 64
+    b_conv2 = bias_variable([64])
+    h_conv2 = tf.nn.relu(conv2d(h_pool1, W_conv2) + b_conv2) # output size 32x32x64
+    h_pool2 = max_pool_2x2(h_conv2)                          # output size 16x16x64
+
+## conv3 layer ##
+with tf.name_scope('conv3_layer'):
+    W_conv3 = weight_variable([3,3, 64, 128]) # patch 3x3, in size 64, out size 128
+    b_conv3 = bias_variable([channel*4])
+    h_conv3 = tf.nn.relu(conv2d(h_pool2, W_conv3) + b_conv3) # output size 16x16x128
+    h_pool3 = max_pool_2x2(h_conv3)                          # output size 8x8x128
+
+## conv4 layer ##
+with tf.name_scope('conv4_layer'):
+    W_conv4 = weight_variable([3,3, 128, 256]) # patch 3x3, in size 128, out size 256
+    b_conv4 = bias_variable([channel*8])
+    h_conv4 = tf.nn.relu(conv2d(h_pool3, W_conv4) + b_conv4) # output size 8x8x256
+    h_pool4 = max_pool_2x2(h_conv4)                          # output size 4x4x256
+
+## fc1 layer ##
+with tf.name_scope('fc1_layer'):
+    W_fc1 = weight_variable([4*4*channel*8, 2])
+    b_fc1 = bias_variable([2])
+    # [n_samples, 4, 4, 256] ->> [n_samples, 4*4*256]
+    h_pool2_flat = tf.reshape(h_pool4, [-1, 4*4*channel*8])
+    h_fc1 = tf.nn.relu(tf.matmul(h_pool2_flat, W_fc1) + b_fc1)
+    h_fc1_drop = tf.nn.dropout(h_fc1, keep_prob)
+
+## fc2 layer ##
+with tf.name_scope('fc2_layer'):
+    W_fc2 = weight_variable([2, 2])
+    b_fc2 = bias_variable([2])
+    prediction = tf.nn.softmax(tf.matmul(h_fc1_drop, W_fc2) + b_fc2)
+
+# the error between prediction and real data
+with tf.name_scope('loss'):
+    cross_entropy = tf.reduce_mean(-tf.reduce_sum(ys * tf.log(prediction),
+                                              reduction_indices=[1]))       # loss
+    tf.summary.scalar('loss',cross_entropy)
+
+with tf.name_scope('optimizer'):
+    train_step = tf.train.AdamOptimizer(1e-3).minimize(cross_entropy)
+
+with tf.name_scope('Accuracy'):
+    correct_prediction = tf.equal(tf.argmax(prediction,1), tf.argmax(ys,1))
+    accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+    tf.summary.scalar('accuracy',accuracy)
+
+
+
+img, label = ReadOwnData.read_and_decode("triangle_and_others_train.tfrecords")
+img_test, label_test = ReadOwnData.read_and_decode("triangle_and_others_test.tfrecords")
+
+#使用shuffle_batch可以随机打乱输入
+img_batch, label_batch = tf.train.shuffle_batch([img, label],
+                                                batch_size=batch_size, capacity=2000,
+                                                min_after_dequeue=1000)
+img_test, label_test = tf.train.shuffle_batch([img_test, label_test],
+                                                batch_size=batch_size, capacity=2000,
+                                                min_after_dequeue=1000)
+
+init = tf.initialize_all_variables()
+t_vars = tf.trainable_variables()
+print(t_vars)
+
+with tf.Session() as sess:
+    sess.run(init)
+    coord = tf.train.Coordinator() 
+    threads=tf.train.start_queue_runners(sess=sess,coord=coord) 
+    for i in range(epoch):
+        for j in range(n_batch):
+            val, l = sess.run([img_batch, label_batch])
+            l = one_hot(l,2)
+            _, acc = sess.run([train_step, accuracy], feed_dict={xs: val, ys: l, keep_prob: 0.5})
+        print("Epoch:[%4d] , accuracy:[%.8f]" % (i, acc) )
+    
+    val, l = sess.run([img_test, label_test])
+    l = one_hot(l,2)
+    print(l)
+    y, acc = sess.run([prediction,accuracy], feed_dict={xs: val, ys: l, keep_prob: 1})
+    print(y)
+    print("test accuracy: [%.8f]" % (acc))
+
+    coord.request_stop()
+    coord.join(threads)
+
+
+
+# sess = tf.Session()
+# # important step
+# # tf.initialize_all_variables() no long valid from
+# merged = tf.summary.merge_all()
+# train_writer = tf.summary.FileWriter("logs/train", sess.graph)
+# test_writer = tf.summary.FileWriter("logs/test", sess.graph)
+# if int((tf.__version__).split('.')[1]) < 12 and int((tf.__version__).split('.')[0]) < 1:
+#     init = tf.initialize_all_variables()
+# else:
+#     init = tf.global_variables_initializer()
+# sess.run(init)
+# for epoch in range(200):
+#     for batch in range(n_batch):
+#         batch_xs, batch_ys = mnist.train.next_batch(100)
+#         sess.run(train_step, feed_dict={xs: batch_xs, ys: batch_ys, keep_prob: 0.5})
+#     acc = compute_accuracy(
+#                 mnist.test.images[:1000], mnist.test.labels[:1000])
+#     print("Iter" + str(epoch) + ", Testing Accuracy" + str(acc))
+
+        # if i % 50 == 0:
+        #     test_result = sess.run(merged, feed_dict={xs: mnist.test.images[:1000], ys: mnist.test.labels[:1000], keep_prob: 1})
+        #     test_writer.add_summary(test_result, i)
+        #     train_result = sess.run(merged, feed_dict={xs: mnist.train.images[:6000], ys: mnist.train.labels[:6000], keep_prob: 1})
+        #     train_writer.add_summary(train_result, i)
+        #     print(compute_accuracy(
+        #         mnist.test.images[:1000], mnist.test.labels[:1000]))
