@@ -8,7 +8,7 @@ import ReadOwnData
 #from tensorflow.examples.tutorials.mnist import input_data
 # number 1 to 10 data
 #mnist = input_data.read_data_sets('MNIST_data', one_hot=True)
-batch_size = 32
+batch_size = 100
 n_batch = int(8960*3*0.8 / batch_size)
 channel = 32
 epoch = 200
@@ -119,11 +119,11 @@ img_test, label_test = ReadOwnData.read_and_decode("triangle_and_others_test.tfr
 
 #使用shuffle_batch可以随机打乱输入
 img_batch, label_batch = tf.train.shuffle_batch([img, label],
-                                                batch_size=batch_size, capacity=64,
-                                                min_after_dequeue=32)
+                                                batch_size=batch_size, capacity=2000,
+                                                min_after_dequeue=1000)
 img_test, label_test = tf.train.shuffle_batch([img_test, label_test],
-                                                batch_size=batch_size, capacity=64,
-                                                min_after_dequeue=32)
+                                                batch_size=batch_size, capacity=2000,
+                                                min_after_dequeue=1000)
 
 init = tf.initialize_all_variables()
 t_vars = tf.trainable_variables()
