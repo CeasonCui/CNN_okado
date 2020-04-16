@@ -108,7 +108,7 @@ with tf.name_scope('loss'):
     tf.summary.scalar('loss',cross_entropy)
 
 with tf.name_scope('optimizer'):
-    train_step = tf.train.AdamOptimizer(1e-3).minimize(cross_entropy)
+    train_step = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy)
 
 with tf.name_scope('Accuracy'):
     correct_prediction = tf.equal(tf.argmax(prediction,1), tf.argmax(ys,1))
@@ -148,7 +148,7 @@ with tf.Session() as sess:
             #     sigle_image.save(cwd + '\\' + str(j)+'_' + str(h) + '_train_'+str(l[h])+'.jpg')#存下图片
 
             l = one_hot(l,2)
-            _, acc = sess.run([train_step, accuracy], feed_dict={xs: val, ys: l, keep_prob: 1})
+            _, acc = sess.run([train_step, accuracy], feed_dict={xs: val, ys: l, keep_prob: 0.5})
             #print("batch:[%4d] , accuracy:[%.8f]" % (i, acc) )
         print("Epoch:[%4d] , accuracy:[%.8f]" % (i, acc) )
         acc_list.append(acc)
