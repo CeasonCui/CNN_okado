@@ -6,44 +6,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 import ReadOwnData
 
-#from tensorflow.examples.tutorials.mnist import input_data
-# number 1 to 10 data
-#mnist = input_data.read_data_sets('MNIST_data', one_hot=True)
 batch_size = 32
 n_batch = int(8960*3*0.8 / batch_size)
 channel = 32
 epoch = 200
 acc_list = []
-
-def plot_acc_loss(loss, acc):
-    host = host_subplot(111)  # row=1 col=1 first pic
-    plt.subplots_adjust(right=0.8)  # ajust the right boundary of the plot window
-    par1 = host.twinx()   # 共享x轴
- 
-    # set labels
-    host.set_xlabel("steps")
-    host.set_ylabel("test-loss")
-    par1.set_ylabel("test-accuracy")
- 
-    # plot curves
-    p1, = host.plot(range(len(loss)), loss, label="loss")
-    p2, = par1.plot(range(len(acc)), acc, label="accuracy")
- 
-    # set location of the legend,
-    # 1->rightup corner, 2->leftup corner, 3->leftdown corner
-    # 4->rightdown corner, 5->rightmid ...
-    host.legend(loc=5)
- 
-    # set label color
-    host.axis["left"].label.set_color(p1.get_color())
-    par1.axis["right"].label.set_color(p2.get_color())
- 
-    # set the range of x axis of host and y axis of par1
-    # host.set_xlim([-200, 5200])
-    # par1.set_ylim([-0.1, 1.1])
- 
-    plt.draw()
-    plt.show()
 
 
 def one_hot(labels,Label_class):
@@ -81,8 +48,9 @@ def max_pool_2x2(x):
 
 # define placeholder for inputs to network
 with tf.name_scope('inputs'):
-    xs = tf.placeholder(tf.float32, [batch_size, 64, 64])/255.   # 64x64
-    ys = tf.placeholder(tf.float32, [batch_size, 2])
+    #xs = tf.placeholder(tf.float32, [None, 64, 64])/255.   # 64x64
+    xs = tf.placeholder(tf.float32, [None, 64, 64])
+    ys = tf.placeholder(tf.float32, [None, 2])
     keep_prob = tf.placeholder(tf.float32)
 
 
@@ -141,7 +109,7 @@ with tf.name_scope('loss'):
     tf.summary.scalar('loss',cross_entropy)
 
 with tf.name_scope('optimizer'):
-    train_step = tf.train.AdamOptimizer(1e-3).minimize(cross_entropy)
+    train_step = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy)
 
 with tf.name_scope('Accuracy'):
     correct_prediction = tf.equal(tf.argmax(prediction,1), tf.argmax(ys,1))
@@ -188,36 +156,7 @@ with tf.Session() as sess:
     
     print (acc_list)
     plt.plot(acc_list)
-    plt.savefig("easyplot.jpg")
+    plt.savefig("acc.jpg")
 
     coord.request_stop()
     coord.join(threads)
-
-
-
-# sess = tf.Session()
-# # important step
-# # tf.initialize_all_variables() no long valid from
-# merged = tf.summary.merge_all()
-# train_writer = tf.summary.FileWriter("logs/train", sess.graph)
-# test_writer = tf.summary.FileWriter("logs/test", sess.graph)
-# if int((tf.__version__).split('.')[1]) < 12 and int((tf.__version__).split('.')[0]) < 1:
-#     init = tf.initialize_all_variables()
-# else:
-#     init = tf.global_variables_initializer()
-# sess.run(init)
-# for epoch in range(200):
-#     for batch in range(n_batch):
-#         batch_xs, batch_ys = mnist.train.next_batch(100)
-#         sess.run(train_step, feed_dict={xs: batch_xs, ys: batch_ys, keep_prob: 0.5})
-#     acc = compute_accuracy(
-#                 mnist.test.images[:1000], mnist.test.labels[:1000])
-#     print("Iter" + str(epoch) + ", Testing Accuracy" + str(acc))
-
-        # if i % 50 == 0:
-        #     test_result = sess.run(merged, feed_dict={xs: mnist.test.images[:1000], ys: mnist.test.labels[:1000], keep_prob: 1})
-        #     test_writer.add_summary(test_result, i)
-        #     train_result = sess.run(merged, feed_dict={xs: mnist.train.images[:6000], ys: mnist.train.labels[:6000], keep_prob: 1})
-        #     train_writer.add_summary(train_result, i)
-        #     print(compute_accuracy(
-        #         mnist.test.images[:1000], mnist.test.labels[:1000]))
