@@ -108,7 +108,7 @@ with tf.name_scope('loss'):
     tf.summary.scalar('loss',cross_entropy)
 
 with tf.name_scope('optimizer'):
-    train_step = tf.train.AdamOptimizer(1e-5).minimize(cross_entropy)
+    train_step = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy)
 
 with tf.name_scope('Accuracy'):
     correct_prediction = tf.equal(tf.argmax(prediction,1), tf.argmax(ys,1))
