@@ -152,7 +152,7 @@ with tf.Session() as sess:
             #     hcheck += 1
             l = one_hot(l,2)
             _, acc = sess.run([train_step, accuracy], feed_dict={xs: val, ys: l, keep_prob: 0.5})
-            print("batch:[%4d] , accuracy:[%.8f]" % (i, acc) )
+            #print("batch:[%4d] , accuracy:[%.8f]" % (i, acc) )
         print("Epoch:[%4d] , accuracy:[%.8f]" % (i, acc) )
         acc_list.append(acc)
     val, l = sess.run([img_test, label_test])
