@@ -5,6 +5,7 @@ from PIL import Image
 import matplotlib.pyplot as plt
 import numpy as np
 import ReadOwnData
+
 #from tensorflow.examples.tutorials.mnist import input_data
 # number 1 to 10 data
 #mnist = input_data.read_data_sets('MNIST_data', one_hot=True)
@@ -13,6 +14,38 @@ n_batch = int(8960*3*0.8 / batch_size)
 channel = 32
 epoch = 200
 acc_list = []
+
+def plot_acc_loss(loss, acc):
+    host = host_subplot(111)  # row=1 col=1 first pic
+    plt.subplots_adjust(right=0.8)  # ajust the right boundary of the plot window
+    par1 = host.twinx()   # 共享x轴
+ 
+    # set labels
+    host.set_xlabel("steps")
+    host.set_ylabel("test-loss")
+    par1.set_ylabel("test-accuracy")
+ 
+    # plot curves
+    p1, = host.plot(range(len(loss)), loss, label="loss")
+    p2, = par1.plot(range(len(acc)), acc, label="accuracy")
+ 
+    # set location of the legend,
+    # 1->rightup corner, 2->leftup corner, 3->leftdown corner
+    # 4->rightdown corner, 5->rightmid ...
+    host.legend(loc=5)
+ 
+    # set label color
+    host.axis["left"].label.set_color(p1.get_color())
+    par1.axis["right"].label.set_color(p2.get_color())
+ 
+    # set the range of x axis of host and y axis of par1
+    # host.set_xlim([-200, 5200])
+    # par1.set_ylim([-0.1, 1.1])
+ 
+    plt.draw()
+    plt.show()
+
+
 def one_hot(labels,Label_class):
     one_hot_label = np.array([[int(i == int(labels[j])) for i in range(Label_class)] for j in range(len(labels))])   
     return one_hot_label
@@ -145,16 +178,16 @@ with tf.Session() as sess:
             l = one_hot(l,2)
             _, acc = sess.run([train_step, accuracy], feed_dict={xs: val, ys: l, keep_prob: 0.5})
         print("Epoch:[%4d] , accuracy:[%.8f]" % (i, acc) )
-    
+        acc_list.append(acc)
     val, l = sess.run([img_test, label_test])
     l = one_hot(l,2)
     print(l)
     y, acc = sess.run([prediction,accuracy], feed_dict={xs: val, ys: l, keep_prob: 1})
     print(y)
     print("test accuracy: [%.8f]" % (acc))
-    acc_list.append(acc)
+    
     print (acc_list)
-    plt.plot(acc_list.index, acc_list)
+    plt.plot(acc_list)
     plt.savefig("easyplot.jpg")
 
     coord.request_stop()
