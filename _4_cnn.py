@@ -8,7 +8,7 @@ import ReadOwnData
 #from tensorflow.examples.tutorials.mnist import input_data
 # number 1 to 10 data
 #mnist = input_data.read_data_sets('MNIST_data', one_hot=True)
-batch_size = 100
+batch_size = 32
 n_batch = int(8960*3*0.8 / batch_size)
 channel = 32
 epoch = 200
@@ -132,6 +132,9 @@ init = tf.initialize_all_variables()
 t_vars = tf.trainable_variables()
 print(t_vars)
 
+
+#test_writer = tf.summary.FileWriter("logs/test", sess.graph)
+
 with tf.Session() as sess:
     sess.run(init)
     coord = tf.train.Coordinator() 
@@ -150,8 +153,8 @@ with tf.Session() as sess:
     print(y)
     print("test accuracy: [%.8f]" % (acc))
     acc_list.append(float(acc))
-    plt.plot(acc_list)
-    plt.show()
+    plt.plot(acc_list)    
+    plt.savefig("easyplot.jpg")
 
     coord.request_stop()
     coord.join(threads)
