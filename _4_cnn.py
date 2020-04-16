@@ -108,7 +108,7 @@ with tf.name_scope('loss'):
     tf.summary.scalar('loss',cross_entropy)
 
 with tf.name_scope('optimizer'):
-    train_step = tf.train.AdamOptimizer(1e-5).minimize(cross_entropy)
+    train_step = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy)
 
 with tf.name_scope('Accuracy'):
     correct_prediction = tf.equal(tf.argmax(prediction,1), tf.argmax(ys,1))
@@ -134,7 +134,7 @@ print(t_vars)
 
 
 #test_writer = tf.summary.FileWriter("logs/test", sess.graph)
-
+cwd = 'C:\\Users\cuizh\Desktop\code\python\gm_2\check'
 with tf.Session() as sess:
     sess.run(init)
     coord = tf.train.Coordinator() 
@@ -142,8 +142,17 @@ with tf.Session() as sess:
     for i in range(50):
         for j in range(n_batch):
             val, l = sess.run([img_batch, label_batch])
+            hcheck = 0
+            for h in range(batch_size):
+                image_check = tf.reshape(img_batch[h], [64, 64])
+                sigle_image = Image.fromarray(val[h], 'L')
+                sigle_image.save(cwd + '\\' + str(j)+'_''train_'+str(l[h])+'.jpg')#存下图片
+                if hcheck==5:
+                    break
+                hcheck += 1
             l = one_hot(l,2)
             _, acc = sess.run([train_step, accuracy], feed_dict={xs: val, ys: l, keep_prob: 0.5})
+            print("batch:[%4d] , accuracy:[%.8f]" % (i, acc) )
         print("Epoch:[%4d] , accuracy:[%.8f]" % (i, acc) )
         acc_list.append(acc)
     val, l = sess.run([img_test, label_test])
