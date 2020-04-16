@@ -144,7 +144,7 @@ with tf.Session() as sess:
         for j in range(n_batch):
             val, l = sess.run([img_batch, label_batch])
             l = one_hot(l,2)
-            _, acc = sess.run([train_step, accuracy], feed_dict={xs: val, ys: l, keep_prob: 1})
+            _, acc = sess.run([train_step, accuracy], feed_dict={xs: val, ys: l, keep_prob: 0.5})
         print("Epoch:[%4d] , accuracy:[%.8f]" % (i, acc) )
         acc_list.append(acc)
     val, l = sess.run([img_test, label_test])
