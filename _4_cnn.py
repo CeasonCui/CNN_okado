@@ -139,7 +139,7 @@ with tf.Session() as sess:
     sess.run(init)
     coord = tf.train.Coordinator() 
     threads=tf.train.start_queue_runners(sess=sess,coord=coord) 
-    for i in range(500):
+    for i in range(50):
         for j in range(n_batch):
             val, l = sess.run([img_batch, label_batch])
             # for h in range(batch_size):
@@ -147,9 +147,9 @@ with tf.Session() as sess:
             #     sigle_image = Image.fromarray(val[h], 'L')
             #     sigle_image.save(cwd + '\\' + str(j)+'_' + str(h) + '_train_'+str(l[h])+'.jpg')#存下图片
 
-            l = one_hot(l,2)
-            _, acc = sess.run([train_step, accuracy], feed_dict={xs: val, ys: l, keep_prob: 0.5})
-            loss = sess.run(cross_entropy, feed_dict = {xs: val, ys: l})
+        l = one_hot(l,2)
+        _, acc = sess.run([train_step, accuracy], feed_dict={xs: val, ys: l, keep_prob: 0.5})
+        loss = sess.run(cross_entropy, feed_dict = {xs: val, ys: l, keep_prob: 1})
             #print("batch:[%4d] , accuracy:[%.8f]" % (i, acc) )
         print("Epoch:[%4d] , accuracy:[%.8f], loss:[%.8f]" % (i, acc,loss) )
         acc_list.append(acc)
