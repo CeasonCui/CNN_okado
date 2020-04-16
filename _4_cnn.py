@@ -12,6 +12,7 @@ batch_size = 100
 n_batch = int(8960*3*0.8 / batch_size)
 channel = 32
 epoch = 200
+acc_list = []
 def one_hot(labels,Label_class):
     one_hot_label = np.array([[int(i == int(labels[j])) for i in range(Label_class)] for j in range(len(labels))])   
     return one_hot_label
@@ -51,6 +52,7 @@ with tf.name_scope('inputs'):
     ys = tf.placeholder(tf.float32, [batch_size, 2])
     keep_prob = tf.placeholder(tf.float32)
 
+
 with tf.name_scope('image_reshape'):
     x_image = tf.reshape(xs, [-1, 64, 64, 1])
 # print(x_image.shape)  # [n_samples, 64,64,1]
@@ -61,6 +63,7 @@ with tf.name_scope('conv1_layer'):
     b_conv1 = bias_variable([channel])
     h_conv1 = tf.nn.relu(conv2d(x_image, W_conv1) + b_conv1) # output size 64x64x32
     h_pool1 = max_pool_2x2(h_conv1)                          # output size 32x32x32
+
 
 ## conv2 layer ##
 with tf.name_scope('conv2_layer'):
@@ -133,7 +136,7 @@ with tf.Session() as sess:
     sess.run(init)
     coord = tf.train.Coordinator() 
     threads=tf.train.start_queue_runners(sess=sess,coord=coord) 
-    for i in range(epoch):
+    for i in range(50):
         for j in range(n_batch):
             val, l = sess.run([img_batch, label_batch])
             l = one_hot(l,2)
@@ -146,6 +149,9 @@ with tf.Session() as sess:
     y, acc = sess.run([prediction,accuracy], feed_dict={xs: val, ys: l, keep_prob: 1})
     print(y)
     print("test accuracy: [%.8f]" % (acc))
+    acc_list.append(float(acc))
+    plt.plot(acc_list)
+    plt.show()
 
     coord.request_stop()
     coord.join(threads)
