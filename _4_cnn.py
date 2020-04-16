@@ -60,28 +60,28 @@ with tf.name_scope('image_reshape'):
 
 ## conv1 layer ##
 with tf.name_scope('conv1_layer'):
-    W_conv1 = weight_variable([3,3, 1,32]) # patch 3x3, in size 1, out size 32
+    W_conv1 = weight_variable([3,3, 1,channel]) # patch 3x3, in size 1, out size 32
     b_conv1 = bias_variable([channel])
     h_conv1 = tf.nn.relu(conv2d(x_image, W_conv1) + b_conv1) # output size 64x64x32
     h_pool1 = max_pool_2x2(h_conv1)                          # output size 32x32x32
 
 ## conv2 layer ##
 with tf.name_scope('conv2_layer'):
-    W_conv2 = weight_variable([3,3, 32, 64]) # patch 3x3, in size 32, out size 64
-    b_conv2 = bias_variable([64])
+    W_conv2 = weight_variable([3,3, channel, channel*2]) # patch 3x3, in size 32, out size 64
+    b_conv2 = bias_variable([channel*2])
     h_conv2 = tf.nn.relu(conv2d(h_pool1, W_conv2) + b_conv2) # output size 32x32x64
     h_pool2 = max_pool_2x2(h_conv2)                          # output size 16x16x64
     
 ## conv3 layer ##
 with tf.name_scope('conv3_layer'):
-    W_conv3 = weight_variable([3,3, 64, 128]) # patch 3x3, in size 64, out size 128
+    W_conv3 = weight_variable([3,3, channel*2, channel*4]) # patch 3x3, in size 64, out size 128
     b_conv3 = bias_variable([channel*4])
     h_conv3 = tf.nn.relu(conv2d(h_pool2, W_conv3) + b_conv3) # output size 16x16x128
     h_pool3 = max_pool_2x2(h_conv3)                          # output size 8x8x128
     
 ## conv4 layer ##
 with tf.name_scope('conv4_layer'):
-    W_conv4 = weight_variable([3,3, 128, 256]) # patch 3x3, in size 128, out size 256
+    W_conv4 = weight_variable([3,3, channel*4, channel*8]) # patch 3x3, in size 128, out size 256
     b_conv4 = bias_variable([channel*8])
     h_conv4 = tf.nn.relu(conv2d(h_pool3, W_conv4) + b_conv4) # output size 8x8x256
     h_pool4 = max_pool_2x2(h_conv4)                          # output size 4x4x256
@@ -143,7 +143,7 @@ with tf.Session() as sess:
         for j in range(n_batch):
             val, l = sess.run([img_batch, label_batch])
             l = one_hot(l,2)
-            _, acc = sess.run([train_step, accuracy], feed_dict={xs: val, ys: l, keep_prob: 0.5})
+            _, acc = sess.run([train_step, accuracy], feed_dict={xs: val, ys: l, keep_prob: 1})
         print("Epoch:[%4d] , accuracy:[%.8f]" % (i, acc) )
         print('conv1:'+ np.std(h_pool1))
         print('conv2:'+ np.std(h_pool2))
