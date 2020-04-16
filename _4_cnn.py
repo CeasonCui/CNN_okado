@@ -153,6 +153,7 @@ with tf.Session() as sess:
     print(y)
     print("test accuracy: [%.8f]" % (acc))
     acc_list.append(acc.item())
+    print (acc_list)
     plt.plot(acc_list, color="red",linewidth=2)    
     plt.savefig("easyplot.jpg")
 
