@@ -152,9 +152,11 @@ with tf.Session() as sess:
     y, acc = sess.run([prediction,accuracy], feed_dict={xs: val, ys: l, keep_prob: 1})
     print(y)
     print("test accuracy: [%.8f]" % (acc))
-    acc_list.append(tf.cast(acc, float))
+    acc_list.append(acc)
     print (acc_list)
-    plt.plot(acc_list, color="red",linewidth=2)    
+    epoch_x = np.linspace(0, 10, 10)
+    plt.figure()
+    plt.plot(epoch_x, acc_list)
     plt.savefig("easyplot.jpg")
 
     coord.request_stop()
