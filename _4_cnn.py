@@ -154,9 +154,7 @@ with tf.Session() as sess:
     print("test accuracy: [%.8f]" % (acc))
     acc_list.append(acc)
     print (acc_list)
-    epoch_x = np.linspace(0, 10, 10)
-    plt.figure()
-    plt.plot(epoch_x, acc_list)
+    plt.plot(acc_list.index, acc_list)
     plt.savefig("easyplot.jpg")
 
     coord.request_stop()
