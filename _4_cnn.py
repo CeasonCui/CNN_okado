@@ -65,28 +65,27 @@ with tf.name_scope('conv1_layer'):
     h_conv1 = tf.nn.relu(conv2d(x_image, W_conv1) + b_conv1) # output size 64x64x32
     h_pool1 = max_pool_2x2(h_conv1)                          # output size 32x32x32
 
-
 ## conv2 layer ##
 with tf.name_scope('conv2_layer'):
     W_conv2 = weight_variable([3,3, 32, 64]) # patch 3x3, in size 32, out size 64
     b_conv2 = bias_variable([64])
     h_conv2 = tf.nn.relu(conv2d(h_pool1, W_conv2) + b_conv2) # output size 32x32x64
     h_pool2 = max_pool_2x2(h_conv2)                          # output size 16x16x64
-
+    
 ## conv3 layer ##
 with tf.name_scope('conv3_layer'):
     W_conv3 = weight_variable([3,3, 64, 128]) # patch 3x3, in size 64, out size 128
     b_conv3 = bias_variable([channel*4])
     h_conv3 = tf.nn.relu(conv2d(h_pool2, W_conv3) + b_conv3) # output size 16x16x128
     h_pool3 = max_pool_2x2(h_conv3)                          # output size 8x8x128
-
+    
 ## conv4 layer ##
 with tf.name_scope('conv4_layer'):
     W_conv4 = weight_variable([3,3, 128, 256]) # patch 3x3, in size 128, out size 256
     b_conv4 = bias_variable([channel*8])
     h_conv4 = tf.nn.relu(conv2d(h_pool3, W_conv4) + b_conv4) # output size 8x8x256
     h_pool4 = max_pool_2x2(h_conv4)                          # output size 4x4x256
-
+    
 ## fc1 layer ##
 with tf.name_scope('fc1_layer'):
     W_fc1 = weight_variable([4*4*channel*8, 2])
@@ -140,12 +139,16 @@ with tf.Session() as sess:
     sess.run(init)
     coord = tf.train.Coordinator() 
     threads=tf.train.start_queue_runners(sess=sess,coord=coord) 
-    for i in range(50):
+    for i in range(20):
         for j in range(n_batch):
             val, l = sess.run([img_batch, label_batch])
             l = one_hot(l,2)
             _, acc = sess.run([train_step, accuracy], feed_dict={xs: val, ys: l, keep_prob: 0.5})
         print("Epoch:[%4d] , accuracy:[%.8f]" % (i, acc) )
+        print('conv1:'+ np.std(h_pool1))
+        print('conv2:'+ np.std(h_pool2))
+        print('conv3:'+ np.std(h_pool3))
+        print('conv4:'+ np.std(h_pool4))
         acc_list.append(acc)
     val, l = sess.run([img_test, label_test])
     l = one_hot(l,2)
