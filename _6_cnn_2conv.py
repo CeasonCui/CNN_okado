@@ -72,28 +72,28 @@ with tf.name_scope('conv2_layer'):
     h_conv2 = tf.nn.relu(conv2d(h_pool1, W_conv2) + b_conv2) # output size 32x32x64
     h_pool2 = max_pool_2x2(h_conv2)                          # output size 16x16x64
     
-## conv3 layer ##
-with tf.name_scope('conv3_layer'):
-    W_conv3 = weight_variable([3,3, channel*2, channel*4]) # patch 3x3, in size 64, out size 128
-    b_conv3 = bias_variable([channel*4])
-    h_conv3 = tf.nn.relu(conv2d(h_pool2, W_conv3) + b_conv3) # output size 16x16x128
-    h_pool3 = max_pool_2x2(h_conv3)                          # output size 8x8x128
-    #cross_entropy3 = tf.reduce_mean(-tf.reduce_sum(ys * tf.log(h_pool3),
-                                              #reduction_indices=[1])) 
-## conv4 layer ##
-with tf.name_scope('conv4_layer'):
-    W_conv4 = weight_variable([3,3, channel*4, channel*8]) # patch 3x3, in size 128, out size 256
-    b_conv4 = bias_variable([channel*8])
-    h_conv4 = tf.nn.relu(conv2d(h_pool3, W_conv4) + b_conv4) # output size 8x8x256
-    h_pool4 = max_pool_2x2(h_conv4)                          # output size 4x4x256
-    #cross_entropy4 = tf.reduce_mean(-tf.reduce_sum(ys * tf.log(h_pool4),
-                                              #reduction_indices=[1]))   
+# ## conv3 layer ##
+# with tf.name_scope('conv3_layer'):
+#     W_conv3 = weight_variable([3,3, channel*2, channel*4]) # patch 3x3, in size 64, out size 128
+#     b_conv3 = bias_variable([channel*4])
+#     h_conv3 = tf.nn.relu(conv2d(h_pool2, W_conv3) + b_conv3) # output size 16x16x128
+#     h_pool3 = max_pool_2x2(h_conv3)                          # output size 8x8x128
+#     #cross_entropy3 = tf.reduce_mean(-tf.reduce_sum(ys * tf.log(h_pool3),
+#                                               #reduction_indices=[1])) 
+# ## conv4 layer ##
+# with tf.name_scope('conv4_layer'):
+#     W_conv4 = weight_variable([3,3, channel*4, channel*8]) # patch 3x3, in size 128, out size 256
+#     b_conv4 = bias_variable([channel*8])
+#     h_conv4 = tf.nn.relu(conv2d(h_pool3, W_conv4) + b_conv4) # output size 8x8x256
+#     h_pool4 = max_pool_2x2(h_conv4)                          # output size 4x4x256
+#     #cross_entropy4 = tf.reduce_mean(-tf.reduce_sum(ys * tf.log(h_pool4),
+#                                               #reduction_indices=[1]))   
 ## fc1 layer ##
 with tf.name_scope('fc1_layer'):
-    W_fc1 = weight_variable([4*4*channel*8, 2])
+    W_fc1 = weight_variable([16*16*channel*2, 2])
     b_fc1 = bias_variable([2])
     # [n_samples, 4, 4, 256] ->> [n_samples, 4*4*256]
-    h_pool2_flat = tf.reshape(h_pool4, [-1, 4*4*channel*8])
+    h_pool2_flat = tf.reshape(h_pool2, [-1, 16*16*channel*2])
     h_fc1 = tf.nn.relu(tf.matmul(h_pool2_flat, W_fc1) + b_fc1)
     h_fc1_drop = tf.nn.dropout(h_fc1, keep_prob)
     
@@ -145,10 +145,10 @@ with tf.Session() as sess:
     for i in range(50):
         for j in range(n_batch):
             val, l = sess.run([img_batch, label_batch])
-            for h in range(batch_size):
-                image_check = tf.reshape(val[h], [64, 64,1])
-                sigle_image = Image.fromarray(val[h], 'L')
-                sigle_image.save(cwd + '\\' + str(j)+'_' + str(h) + '_train_'+str(l[h])+'.jpg')#存下图片
+            # for h in range(batch_size):
+            #     image_check = tf.reshape(val[h], [64, 64,1])
+            #     sigle_image = Image.fromarray(val[h], 'L')
+            #     sigle_image.save(cwd + '\\' + str(j)+'_' + str(h) + '_train_'+str(l[h])+'.jpg')#存下图片
 
         l = one_hot(l,2)
         _, acc = sess.run([train_step, accuracy], feed_dict={xs: val, ys: l, keep_prob: 0.5})
