@@ -150,7 +150,7 @@ with tf.Session() as sess:
             l = one_hot(l,2)
             _, acc = sess.run([train_step, accuracy], feed_dict={xs: val, ys: l, keep_prob: 0.5})
             loss = sess.run(cross_entropy, feed_dict = {xs: val, ys: l, keep_prob: 1})
-            #print("batch:[%4d] , accuracy:[%.8f]" % (i, acc) )
+            print("batch:[%4d] , accuracy:[%.8f], loss:[%.8f]" % (i, acc,loss) )
         print("Epoch:[%4d] , accuracy:[%.8f], loss:[%.8f]" % (i, acc,loss) )
         acc_list.append(acc)
     val, l = sess.run([img_test, label_test])
