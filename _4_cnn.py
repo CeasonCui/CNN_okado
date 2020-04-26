@@ -6,7 +6,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 import ReadOwnData
 
-batch_size = 32
+filename_queue = tf.train.string_input_producer(["triangle_and_others_train.tfrecords"], num_epochs=1)
+reader = tf.TFRecordReader()
+key, serialized_example = reader.read(filename_queue)
+
+batch_size = 1
 n_batch = int(8960*3*0.8 / batch_size)
 channel = 32
 epoch = 200
@@ -119,7 +123,7 @@ with tf.name_scope('Accuracy'):
     tf.summary.scalar('accuracy',accuracy)
 
 
-
+#mnist = input_data.read_data_sets('MNIST_data', one_hot=True)
 img, label = ReadOwnData.read_and_decode("triangle_and_others_train.tfrecords")
 img_test, label_test = ReadOwnData.read_and_decode("triangle_and_others_test.tfrecords")
 
@@ -130,6 +134,7 @@ img_batch, label_batch = tf.train.shuffle_batch([img, label],
 img_test, label_test = tf.train.shuffle_batch([img_test, label_test],
                                                 batch_size=batch_size, capacity=2000,
                                                 min_after_dequeue=1000)
+
 
 init = tf.initialize_all_variables()
 t_vars = tf.trainable_variables()
@@ -145,14 +150,14 @@ with tf.Session() as sess:
     for i in range(50):
         for j in range(n_batch):
             val, l = sess.run([img_batch, label_batch])
-            for h in range(batch_size):
-                image_check = tf.reshape(val[h], [64, 64,1])
-                sigle_image = Image.fromarray(val[h], 'L')
-                sigle_image.save(cwd + '\\' + str(j)+'_' + str(h) + '_train_'+str(l[h])+'.jpg')#存下图片
+            # for h in range(batch_size):
+            #     image_check = tf.reshape(val[h], [64, 64,1])
+            #     sigle_image = Image.fromarray(val[h], 'L')
+            #     sigle_image.save(cwd + '\\' + str(j)+'_' + str(h) + '_train_'+str(l[h])+'.jpg')#存下图片
 
-        l = one_hot(l,2)
-        _, acc = sess.run([train_step, accuracy], feed_dict={xs: val, ys: l, keep_prob: 0.5})
-        loss = sess.run(cross_entropy, feed_dict = {xs: val, ys: l, keep_prob: 1})
+            l = one_hot(l,2)
+            _, acc = sess.run([train_step, accuracy], feed_dict={xs: val, ys: l, keep_prob: 0.5})
+            loss = sess.run(cross_entropy, feed_dict = {xs: val, ys: l, keep_prob: 1})
         #loss3 = sess.run(cross_entropy3, feed_dict = {xs: val, ys: l})
         #loss4 = sess.run(cross_entropy4, feed_dict = {xs: val, ys: l})
             #print("batch:[%4d] , accuracy:[%.8f]" % (i, acc) )
