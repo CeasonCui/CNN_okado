@@ -121,12 +121,17 @@ img, label = ReadOwnData.read_and_decode("triangle_and_others_train.tfrecords")
 img_test, label_test = ReadOwnData.read_and_decode("triangle_and_others_test.tfrecords")
 
 #使用shuffle_batch可以随机打乱输入
-img_batch, label_batch = tf.train.shuffle_batch([img, label],
-                                                batch_size=batch_size, capacity=2000,
-                                                min_after_dequeue=1000)
-img_test, label_test = tf.train.shuffle_batch([img_test, label_test],
-                                                batch_size=batch_size, capacity=2000,
-                                                min_after_dequeue=1000)
+# img_batch, label_batch = tf.train.shuffle_batch([img, label],
+#                                                 batch_size=batch_size, capacity=2000,
+#                                                 min_after_dequeue=1000)
+# img_test, label_test = tf.train.shuffle_batch([img_test, label_test],
+#                                                 batch_size=batch_size, capacity=2000,
+#                                                 min_after_dequeue=1000)
+
+img_batch, label_batch = tf.train.batch([img, label],
+                                                batch_size=batch_size, capacity=2000)
+img_test, label_test = tf.train.batch([img_test, label_test],
+                                                batch_size=batch_size, capacity=2000)
 
 init = tf.initialize_all_variables()
 t_vars = tf.trainable_variables()
@@ -143,14 +148,15 @@ with tf.Session() as sess:
         for j in range(n_batch):
             val, l = sess.run([img_batch, label_batch])
             # for h in range(batch_size):
-            #     image_check = tf.reshape(val[h], [64, 64])
+            #     #check_image = tf.reshape(val[h], [64, 64])
             #     sigle_image = Image.fromarray(val[h], 'L')
-            #     sigle_image.save(cwd + '\\' + str(j)+'_' + str(h) + '_train_'+str(l[h])+'.jpg')#存下图片
+            #     #print(check_image.shape)
+            #     sigle_image.save(cwd + '\\' + str(i) + '_' + str(j)+'_' + str(h) + '_train_'+str(l[h])+'.jpg')#存下图片
 
             l = one_hot(l,2)
             _, acc = sess.run([train_step, accuracy], feed_dict={xs: val, ys: l, keep_prob: 0.5})
             loss = sess.run(cross_entropy, feed_dict = {xs: val, ys: l, keep_prob: 1})
-            print("batch:[%4d] , accuracy:[%.8f], loss:[%.8f]" % (i, acc,loss) )
+            print("batch:[%4d] , accuracy:[%.8f], loss:[%.8f]" % (j, acc,loss) )
         print("Epoch:[%4d] , accuracy:[%.8f], loss:[%.8f]" % (i, acc,loss) )
         acc_list.append(acc)
     val, l = sess.run([img_test, label_test])
