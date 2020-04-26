@@ -6,11 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import ReadOwnData
 
-filename_queue = tf.train.string_input_producer(["triangle_and_others_train.tfrecords"], num_epochs=1)
-reader = tf.TFRecordReader()
-key, serialized_example = reader.read(filename_queue)
-
-batch_size = 1
+batch_size = 32
 n_batch = int(8960*3*0.8 / batch_size)
 channel = 32
 epoch = 200
@@ -60,7 +56,7 @@ with tf.name_scope('inputs'):
 
 with tf.name_scope('image_reshape'):
     x_image = tf.reshape(xs, [-1, 64, 64, 1])
-    #print(x_image.shape)  # [n_samples, 64,64,1]
+# print(x_image.shape)  # [n_samples, 64,64,1]
 
 ## conv1 layer ##
 with tf.name_scope('conv1_layer'):
@@ -82,16 +78,14 @@ with tf.name_scope('conv3_layer'):
     b_conv3 = bias_variable([channel*4])
     h_conv3 = tf.nn.relu(conv2d(h_pool2, W_conv3) + b_conv3) # output size 16x16x128
     h_pool3 = max_pool_2x2(h_conv3)                          # output size 8x8x128
-    #cross_entropy3 = tf.reduce_mean(-tf.reduce_sum(ys * tf.log(h_pool3),
-                                              #reduction_indices=[1])) 
+    
 ## conv4 layer ##
 with tf.name_scope('conv4_layer'):
     W_conv4 = weight_variable([3,3, channel*4, channel*8]) # patch 3x3, in size 128, out size 256
     b_conv4 = bias_variable([channel*8])
     h_conv4 = tf.nn.relu(conv2d(h_pool3, W_conv4) + b_conv4) # output size 8x8x256
     h_pool4 = max_pool_2x2(h_conv4)                          # output size 4x4x256
-    #cross_entropy4 = tf.reduce_mean(-tf.reduce_sum(ys * tf.log(h_pool4),
-                                              #reduction_indices=[1]))   
+    
 ## fc1 layer ##
 with tf.name_scope('fc1_layer'):
     W_fc1 = weight_variable([4*4*channel*8, 2])
@@ -100,7 +94,6 @@ with tf.name_scope('fc1_layer'):
     h_pool2_flat = tf.reshape(h_pool4, [-1, 4*4*channel*8])
     h_fc1 = tf.nn.relu(tf.matmul(h_pool2_flat, W_fc1) + b_fc1)
     h_fc1_drop = tf.nn.dropout(h_fc1, keep_prob)
-    
 
 ## fc2 layer ##
 with tf.name_scope('fc2_layer'):
@@ -123,7 +116,7 @@ with tf.name_scope('Accuracy'):
     tf.summary.scalar('accuracy',accuracy)
 
 
-#mnist = input_data.read_data_sets('MNIST_data', one_hot=True)
+
 img, label = ReadOwnData.read_and_decode("triangle_and_others_train.tfrecords")
 img_test, label_test = ReadOwnData.read_and_decode("triangle_and_others_test.tfrecords")
 
@@ -134,7 +127,6 @@ img_batch, label_batch = tf.train.shuffle_batch([img, label],
 img_test, label_test = tf.train.shuffle_batch([img_test, label_test],
                                                 batch_size=batch_size, capacity=2000,
                                                 min_after_dequeue=1000)
-
 
 init = tf.initialize_all_variables()
 t_vars = tf.trainable_variables()
@@ -151,15 +143,13 @@ with tf.Session() as sess:
         for j in range(n_batch):
             val, l = sess.run([img_batch, label_batch])
             # for h in range(batch_size):
-            #     image_check = tf.reshape(val[h], [64, 64,1])
+            #     image_check = tf.reshape(val[h], [64, 64])
             #     sigle_image = Image.fromarray(val[h], 'L')
             #     sigle_image.save(cwd + '\\' + str(j)+'_' + str(h) + '_train_'+str(l[h])+'.jpg')#存下图片
 
             l = one_hot(l,2)
             _, acc = sess.run([train_step, accuracy], feed_dict={xs: val, ys: l, keep_prob: 0.5})
             loss = sess.run(cross_entropy, feed_dict = {xs: val, ys: l, keep_prob: 1})
-        #loss3 = sess.run(cross_entropy3, feed_dict = {xs: val, ys: l})
-        #loss4 = sess.run(cross_entropy4, feed_dict = {xs: val, ys: l})
             #print("batch:[%4d] , accuracy:[%.8f]" % (i, acc) )
         print("Epoch:[%4d] , accuracy:[%.8f], loss:[%.8f]" % (i, acc,loss) )
         acc_list.append(acc)
