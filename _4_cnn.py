@@ -15,7 +15,7 @@ acc_list = []
 
 def one_hot(labels,Label_class):
     one_hot_label = np.array([[int(i == int(labels[j])) for i in range(Label_class)] for j in range(labels.shape[0])])   
-    return one_hot_label.astype(np.float32)
+    return one_hot_label
 
 def compute_accuracy(v_xs, v_ys):
     global prediction
@@ -49,7 +49,7 @@ def max_pool_2x2(x):
 # define placeholder for inputs to network
 with tf.name_scope('inputs'):
     #xs = tf.placeholder(tf.float32, [None, 64, 64])/255.   # 64x64
-    xs = tf.placeholder(tf.float32, [None, 64, 64])
+    xs = tf.placeholder(tf.float32, [None, 1, 64, 64])
     ys = tf.placeholder(tf.float32, [None, 2])
     keep_prob = tf.placeholder(tf.float32)
 
