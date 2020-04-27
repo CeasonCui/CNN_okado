@@ -64,7 +64,8 @@ with tf.name_scope('conv1_layer'):
     b_conv1 = bias_variable([channel])
     h_conv1 = tf.nn.relu(conv2d(x_image, W_conv1) + b_conv1) # output size 64x64x32
     h_pool1 = max_pool_2x2(h_conv1)                          # output size 32x32x32
-
+    #tf.summary.image("conv1_relu_image",reverse_conv2d(h_conv1,[5,5,1,32],[50,28,28,1]),10)
+    # #保存通过激活函数之后的图片
 ## conv2 layer ##
 with tf.name_scope('conv2_layer'):
     W_conv2 = weight_variable([3,3, channel, channel*2]) # patch 3x3, in size 32, out size 64
@@ -144,7 +145,7 @@ with tf.Session() as sess:
     sess.run(init)
     coord = tf.train.Coordinator() 
     threads=tf.train.start_queue_runners(sess=sess,coord=coord) 
-    for i in range(30):
+    for i in range(10):
         for j in range(n_batch):
             val, l = sess.run([img_batch, label_batch])
             # for h in range(batch_size):
@@ -162,13 +163,17 @@ with tf.Session() as sess:
         #print("Epoch:[%4d] , accuracy:[%.8f], loss:[%.8f]" % (i, acc,loss) )
         #acc_list.append(acc)
         val_test, l_test = sess.run([img_test, label_test])
+        val_train, l_train = sess.run([img, label])
         l_test = one_hot(l_test,2)
+        l_train = one_hot(l_train,2)
+        loss_train, acc_train = sess.run([cross_entropy,accuracy], feed_dict={xs: val_train, ys: l_train, keep_prob: 1})
         #print(l)
         loss_test, acc_test = sess.run([cross_entropy,accuracy], feed_dict={xs: val_test, ys: l_test, keep_prob: 1})
         #print(y)
-        print("Epoch:[%4d] , accuracy:[%.8f], loss:[%.8f]" % (i, acc_test,loss_test) )
+        print("Epoch:[%4d] , train_accuracy:[%.8f], loss:[%.8f]" % (i, acc_train,loss_train) )
+        print("Epoch:[%4d] , test_accuracy:[%.8f], loss:[%.8f]" % (i, acc_test,loss_test) )
         #print("test accuracy: [%.8f]" % (acc))
-        acc_list.append(acc_test)
+        acc_list.append(acc_train)
     
     print (acc_list)
     plt.plot(acc_list)
@@ -176,51 +181,3 @@ with tf.Session() as sess:
 
     coord.request_stop()
     coord.join(threads)
-
-
-
-    # imput image
-    fig2,ax2 = plt.subplots(figsize=(2,2))
-    ax2.imshow(np.reshape(img[11], (64, 64)))
-    plt.show()
-    
-    # 第一层的卷积输出的特征图
-    input_image = img[11:12]
-    conv1_16 = sess.run(h_conv1, feed_dict={xs:input_image})     # [1, 64, 64 ,32] 
-    conv1_transpose = sess.run(tf.transpose(conv1_16, [3, 0, 1, 2]))
-    fig3,ax3 = plt.subplots(nrows=1, ncols=32, figsize = (32,1))
-    for i in range(32):
-        ax3[i].imshow(conv1_transpose[i][0])                      # tensor的切片[row, column]
-     
-    plt.title('Conv1 32x64x64')
-    plt.show()
-    
-    # # 第一层池化后的特征图
-    # pool1_16 = sess.run(h_pool1, feed_dict={x:input_image})     # [1, 14, 14, 16]
-    # pool1_transpose = sess.run(tf.transpose(pool1_16, [3, 0, 1, 2]))
-    # fig4,ax4 = plt.subplots(nrows=1, ncols=16, figsize=(16,1))
-    # for i in range(16):
-    #     ax4[i].imshow(pool1_transpose[i][0])
-     
-    # plt.title('Pool1 16x14x14')
-    # plt.show()
-    
-    # # 第二层卷积输出特征图
-    # conv2_32 = sess.run(h_conv2, feed_dict={x:input_image})          # [1, 14, 14, 32]
-    # conv2_transpose = sess.run(tf.transpose(conv2_32, [3, 0, 1, 2]))
-    # fig5,ax5 = plt.subplots(nrows=1, ncols=32, figsize = (32, 1))
-    # for i in range(32):
-    #     ax5[i].imshow(conv2_transpose[i][0])
-    # plt.title('Conv2 32x14x14')
-    # plt.show()
-    
-    # # 第二层池化后的特征图
-    # pool2_32 = sess.run(h_pool2, feed_dict={x:input_image})         #[1, 7, 7, 32]
-    # pool2_transpose = sess.run(tf.transpose(pool2_32, [3, 0, 1, 2]))
-    # fig6,ax6 = plt.subplots(nrows=1, ncols=32, figsize = (32, 1))
-    # plt.title('Pool2 32x7x7')
-    # for i in range(32):
-    #     ax6[i].imshow(pool2_transpose[i][0])
-    
-    # plt.show()
-
