@@ -146,6 +146,7 @@ with tf.Session() as sess:
     coord = tf.train.Coordinator() 
     threads=tf.train.start_queue_runners(sess=sess,coord=coord) 
     for i in range(10):
+        acc_sum = 0
         for j in range(n_batch):
             val, l = sess.run([img_batch, label_batch])
             # for h in range(batch_size):
@@ -154,17 +155,17 @@ with tf.Session() as sess:
             #     #print(check_image.shape)
             #     sigle_image.save(cwd + '\\' + str(i) + 'git_' + str(j)+'_' + str(h) + '_train_'+str(l[h])+'.jpg')#存下图片
 
-            #l = one_hot(l,2)
+            l = one_hot(l,2)
             _, acc = sess.run([train_step, accuracy], feed_dict={xs: val, ys: l, keep_prob: 0.5})
             # print(val)
             # print(l)
+            acc_sum += acc
             loss = sess.run(cross_entropy, feed_dict = {xs: val, ys: l, keep_prob: 1})
             #print("batch:[%4d] , accuracy:[%.8f], loss:[%.8f]" % (j, acc,loss) )
-        #print("Epoch:[%4d] , accuracy:[%.8f], loss:[%.8f]" % (i, acc,loss) )
-        #acc_list.append(acc)
-
-        val_test, l_test = sess.run([img_test, label_test])
-        val_train, l_train = sess.run([img, label])
+        print("Epoch:[%4d] , accuracy:[%.8f], loss:[%.8f]" % (i, acc_sum/n_batch,loss) )
+        acc_list.append(acc_sum/n_batch)
+        #val_test, l_test = sess.run([img_test, label_test])
+        #val_train, l_train = sess.run([img, label])
 
 
         # val_train = np.array(val_train)
@@ -172,16 +173,16 @@ with tf.Session() as sess:
         # l_train = np.array(l_train)
         # l_test = np.array(l_test)
 
-        # l_test = one_hot(l_test,2)
-        # l_train = one_hot(l_train,2)
-        loss_train, acc_train = sess.run([cross_entropy,accuracy], feed_dict={xs: val_test, ys: l_train, keep_prob: 1})
+        #l_test = tf.one_hot(l_test,2)
+        #l_train = tf.one_hot(l_train,2)
+        #loss_train, acc_train = sess.run([cross_entropy,accuracy], feed_dict={xs: val_train, ys: l_train, keep_prob: 1})
         #print(l)
-        loss_test, acc_test = sess.run([cross_entropy,accuracy], feed_dict={xs: val_train, ys: l_test, keep_prob: 1})
+        #loss_test, acc_test = sess.run([cross_entropy,accuracy], feed_dict={xs: val_test, ys: l_test, keep_prob: 1})
         #print(y)
-        print("Epoch:[%4d] , train_accuracy:[%.8f], loss:[%.8f]" % (i, acc_train,loss_train) )
-        print("Epoch:[%4d] , test_accuracy:[%.8f], loss:[%.8f]" % (i, acc_test,loss_test) )
+        #print("Epoch:[%4d] , train_accuracy:[%.8f], loss:[%.8f]" % (i, acc_train,loss_train) )
+        #print("Epoch:[%4d] , test_accuracy:[%.8f], loss:[%.8f]" % (i, acc_test,loss_test) )
         #print("test accuracy: [%.8f]" % (acc))
-        acc_list.append(acc_train)
+        #acc_list.append(acc_train)
     
     print (acc_list)
     plt.plot(acc_list)
