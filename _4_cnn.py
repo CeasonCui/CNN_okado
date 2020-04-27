@@ -144,7 +144,7 @@ with tf.Session() as sess:
     sess.run(init)
     coord = tf.train.Coordinator() 
     threads=tf.train.start_queue_runners(sess=sess,coord=coord) 
-    for i in range(10):
+    for i in range(30):
         for j in range(n_batch):
             val, l = sess.run([img_batch, label_batch])
             # for h in range(batch_size):
@@ -161,13 +161,14 @@ with tf.Session() as sess:
             #print("batch:[%4d] , accuracy:[%.8f], loss:[%.8f]" % (j, acc,loss) )
         #print("Epoch:[%4d] , accuracy:[%.8f], loss:[%.8f]" % (i, acc,loss) )
         #acc_list.append(acc)
-        val, l = sess.run([img_test, label_test])
+        val_test, l_test = sess.run([img_test, label_test])
         l = one_hot(l,2)
         #print(l)
-        y, acc = sess.run([prediction,accuracy], feed_dict={xs: val, ys: l, keep_prob: 1})
+        loss_test, acc_test = sess.run([cross_entropy,accuracy], feed_dict={xs: val_test, ys: l_test, keep_prob: 1})
         #print(y)
-        print("test accuracy: [%.8f]" % (acc))
-        acc_list.append(acc)
+        print("Epoch:[%4d] , accuracy:[%.8f], loss:[%.8f]" % (i, acc_test,loss_test) )
+        #print("test accuracy: [%.8f]" % (acc))
+        acc_list.append(acc_test)
     
     print (acc_list)
     plt.plot(acc_list)
