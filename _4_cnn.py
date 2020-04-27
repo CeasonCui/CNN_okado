@@ -131,8 +131,8 @@ img_test, label_test = ReadOwnData.read_and_decode("triangle_and_others_test.tfr
 
 img_batch, label_batch = tf.train.batch([img, label],
                                                 batch_size=batch_size, capacity=2000)
-img_test, label_test = tf.train.batch([img_test, label_test],
-                                                batch_size=batch_size, capacity=2000)
+#img_test, label_test = tf.train.batch([img_test, label_test],
+                                                #batch_size=5376, capacity=2000)
 
 init = tf.initialize_all_variables()
 t_vars = tf.trainable_variables()
@@ -152,7 +152,7 @@ with tf.Session() as sess:
             #     #check_image = tf.reshape(val[h], [64, 64])
             #     sigle_image = Image.fromarray(val[h], 'L')
             #     #print(check_image.shape)
-            #     sigle_image.save(cwd + '\\' + str(i) + '_' + str(j)+'_' + str(h) + '_train_'+str(l[h])+'.jpg')#存下图片
+            #     sigle_image.save(cwd + '\\' + str(i) + 'git_' + str(j)+'_' + str(h) + '_train_'+str(l[h])+'.jpg')#存下图片
 
             l = one_hot(l,2)
             _, acc = sess.run([train_step, accuracy], feed_dict={xs: val, ys: l, keep_prob: 0.5})
@@ -162,10 +162,16 @@ with tf.Session() as sess:
             #print("batch:[%4d] , accuracy:[%.8f], loss:[%.8f]" % (j, acc,loss) )
         #print("Epoch:[%4d] , accuracy:[%.8f], loss:[%.8f]" % (i, acc,loss) )
         #acc_list.append(acc)
+
         val_test, l_test = sess.run([img_test, label_test])
         val_train, l_train = sess.run([img, label])
+
         l_test = one_hot(l_test,2)
         l_train = one_hot(l_train,2)
+        val_train = np.array(val_train)
+        val_test = np.array(val_test)
+        l_train = np.array(l_train)
+        l_test = np.array(l_test)
         loss_train, acc_train = sess.run([cross_entropy,accuracy], feed_dict={xs: val_train, ys: l_train, keep_prob: 1})
         #print(l)
         loss_test, acc_test = sess.run([cross_entropy,accuracy], feed_dict={xs: val_test, ys: l_test, keep_prob: 1})
