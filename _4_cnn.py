@@ -62,7 +62,7 @@ with tf.name_scope('image_reshape'):
 with tf.name_scope('conv1_layer'):
     W_conv1 = weight_variable([3,3, 1,channel]) # patch 3x3, in size 1, out size 32
     b_conv1 = bias_variable([channel])
-    h_conv1 = tf.nn.relu(conv2d(x_image, W_conv1) + b_conv1) # output size 64x64x32
+    h_conv1 = tf.sigmoid(conv2d(x_image, W_conv1) + b_conv1) # output size 64x64x32
     h_pool1 = max_pool_2x2(h_conv1)                          # output size 32x32x32
     #tf.summary.image("conv1_relu_image",reverse_conv2d(h_conv1,[5,5,1,32],[50,28,28,1]),10)
     # #保存通过激活函数之后的图片
@@ -70,21 +70,21 @@ with tf.name_scope('conv1_layer'):
 with tf.name_scope('conv2_layer'):
     W_conv2 = weight_variable([3,3, channel, channel*2]) # patch 3x3, in size 32, out size 64
     b_conv2 = bias_variable([channel*2])
-    h_conv2 = tf.nn.relu(conv2d(h_pool1, W_conv2) + b_conv2) # output size 32x32x64
+    h_conv2 = tf.sigmoid(conv2d(h_pool1, W_conv2) + b_conv2) # output size 32x32x64
     h_pool2 = max_pool_2x2(h_conv2)                          # output size 16x16x64
     
 ## conv3 layer ##
 with tf.name_scope('conv3_layer'):
     W_conv3 = weight_variable([3,3, channel*2, channel*4]) # patch 3x3, in size 64, out size 128
     b_conv3 = bias_variable([channel*4])
-    h_conv3 = tf.nn.relu(conv2d(h_pool2, W_conv3) + b_conv3) # output size 16x16x128
+    h_conv3 = tf.sigmoid(conv2d(h_pool2, W_conv3) + b_conv3) # output size 16x16x128
     h_pool3 = max_pool_2x2(h_conv3)                          # output size 8x8x128
     
 ## conv4 layer ##
 with tf.name_scope('conv4_layer'):
     W_conv4 = weight_variable([3,3, channel*4, channel*8]) # patch 3x3, in size 128, out size 256
     b_conv4 = bias_variable([channel*8])
-    h_conv4 = tf.nn.relu(conv2d(h_pool3, W_conv4) + b_conv4) # output size 8x8x256
+    h_conv4 = tf.sigmoid(conv2d(h_pool3, W_conv4) + b_conv4) # output size 8x8x256
     h_pool4 = max_pool_2x2(h_conv4)                          # output size 4x4x256
     
 ## fc1 layer ##
@@ -93,18 +93,19 @@ with tf.name_scope('fc1_layer'):
     b_fc1 = bias_variable([2])
     # [n_samples, 4, 4, 256] ->> [n_samples, 4*4*256]
     h_pool2_flat = tf.reshape(h_pool4, [-1, 4*4*channel*8])
-    h_fc1 = tf.nn.relu(tf.matmul(h_pool2_flat, W_fc1) + b_fc1)
+    h_fc1 = tf.sigmoid(tf.matmul(h_pool2_flat, W_fc1) + b_fc1)
     h_fc1_drop = tf.nn.dropout(h_fc1, keep_prob)
 
 ## fc2 layer ##
 with tf.name_scope('fc2_layer'):
     W_fc2 = weight_variable([2, 2])
     b_fc2 = bias_variable([2])
-    prediction = tf.nn.softmax(tf.matmul(h_fc1_drop, W_fc2) + b_fc2)
+    pre_mul=tf.matmul(h_fc1_drop, W_fc2) + b_fc2
+    prediction = tf.sigmoid(tf.nn.softmax(tf.matmul(h_fc1_drop, W_fc2) + b_fc2))
 
 # the error between prediction and real data
 with tf.name_scope('loss'):
-    cross_entropy = tf.reduce_mean(-tf.reduce_sum(ys * tf.log(prediction + 1e-7),
+    cross_entropy = tf.reduce_mean(-tf.reduce_sum(ys * tf.log(prediction),
                                               reduction_indices=[1]))       # loss
     tf.summary.scalar('loss',cross_entropy)
 
@@ -159,6 +160,7 @@ with tf.Session() as sess:
             _, acc = sess.run([train_step, accuracy], feed_dict={xs: val, ys: l, keep_prob: 0.5})
             # print(val)
             # print(l)
+            #print(sess.run(pre_mul, feed_dict={xs: val, ys: l, keep_prob: 0.5}))
             acc_sum += acc
             loss = sess.run(cross_entropy, feed_dict = {xs: val, ys: l, keep_prob: 1})
             #print("batch:[%4d] , accuracy:[%.8f], loss:[%.8f]" % (j, acc,loss) )
