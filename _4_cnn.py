@@ -164,7 +164,7 @@ with tf.Session() as sess:
             #print(sess.run(pre_mul, feed_dict={xs: val, ys: l, keep_prob: 0.5}))
             acc_sum += acc
             loss = sess.run(cross_entropy, feed_dict = {xs: val, ys: l, keep_prob: 1})
-            #print("batch:[%4d] , accuracy:[%.8f], loss:[%.8f]" % (j, acc,loss) )
+            print("batch:[%4d] , accuracy:[%.8f], loss:[%.8f]" % (j, acc,loss) )
         print("Epoch:[%4d] , accuracy:[%.8f], loss:[%.8f]" % (i, acc_sum/n_batch,loss) )
         acc_list.append(acc_sum/n_batch)
         #val_test, l_test = sess.run([img_test, label_test])
