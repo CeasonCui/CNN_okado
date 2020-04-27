@@ -216,7 +216,7 @@ for label, img_path in zip(test_label, test):
         'img_raw': tf.train.Feature(bytes_list=tf.train.BytesList(value=[img_raw]))
     })) #example对象对label和image数据进行封装
     writer_test.write(example.SerializeToString())  #序列化为字符串
- 
+
 writer_test.close()
 
 for label, img_path in zip(train_label, train):
@@ -238,8 +238,10 @@ writer_train.close()
 # print('over')
 
 #验证二进制文件正确性
-cwd = 'C:\\Users\cuizh\Desktop\code\python\gm_2'
+cwd = 'C:\\Users\cuizh\Desktop\code\python\gm_2\check'
 filename_queue = tf.train.string_input_producer(["triangle_and_others_train.tfrecords"]) #读入流中
+cnt = len(list(tf.python_io.tf_record_iterator("triangle_and_others_train.tfrecords")))
+print("train件数：{}".format(cnt))
 reader = tf.TFRecordReader()
 _, serialized_example = reader.read(filename_queue)   #返回文件名和文件
 features = tf.parse_single_example(serialized_example,
@@ -258,13 +260,15 @@ with tf.Session() as sess: #开始一个会话
     for i in range(20):
         example, l = sess.run([image,label])#在会话中取出image和label
         img=Image.fromarray(example,'L')#这里Image是之前提到的
-        img.save(cwd + '\\' + str(i)+'_''trainLabel_'+str(l)+'.jpg')#存下图片
+        img.save(cwd + '\\' + str(i)+'_''train_'+str(l)+'.jpg')#存下图片
         print(example, l)
     coord.request_stop()
     coord.join(threads)
 
 
 filename_queue = tf.train.string_input_producer(["triangle_and_others_test.tfrecords"]) #读入流中
+cnt = len(list(tf.python_io.tf_record_iterator("triangle_and_others_test.tfrecords")))
+print("train件数：{}".format(cnt))
 reader = tf.TFRecordReader()
 _, serialized_example = reader.read(filename_queue)   #返回文件名和文件
 features = tf.parse_single_example(serialized_example,
@@ -283,7 +287,7 @@ with tf.Session() as sess: #开始一个会话
     for i in range(20):
         example, l = sess.run([image,label])#在会话中取出image和label
         img=Image.fromarray(example,'L')#这里Image是之前提到的
-        img.save(cwd + '\\' + str(i)+'_''testLabel_'+str(l)+'.jpg')#存下图片
+        img.save(cwd + '\\' + str(i)+'_''test_'+str(l)+'.jpg')#存下图片
         print(example, l)
     coord.request_stop()
     coord.join(threads)

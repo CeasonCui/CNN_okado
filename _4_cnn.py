@@ -15,7 +15,7 @@ acc_list = []
 
 def one_hot(labels,Label_class):
     one_hot_label = np.array([[int(i == int(labels[j])) for i in range(Label_class)] for j in range(len(labels))])   
-    return one_hot_label
+    return one_hot_label.astype(np.float32)
 
 def compute_accuracy(v_xs, v_ys):
     global prediction
@@ -103,12 +103,12 @@ with tf.name_scope('fc2_layer'):
 
 # the error between prediction and real data
 with tf.name_scope('loss'):
-    cross_entropy = tf.reduce_mean(-tf.reduce_sum(ys * tf.log(prediction),
+    cross_entropy = tf.reduce_mean(-tf.reduce_sum(ys * tf.log(prediction + 1e-7),
                                               reduction_indices=[1]))       # loss
     tf.summary.scalar('loss',cross_entropy)
 
 with tf.name_scope('optimizer'):
-    train_step = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy)
+    train_step = tf.train.AdamOptimizer(0.001).minimize(cross_entropy)
 
 with tf.name_scope('Accuracy'):
     correct_prediction = tf.equal(tf.argmax(prediction,1), tf.argmax(ys,1))
@@ -144,7 +144,7 @@ with tf.Session() as sess:
     sess.run(init)
     coord = tf.train.Coordinator() 
     threads=tf.train.start_queue_runners(sess=sess,coord=coord) 
-    for i in range(50):
+    for i in range(10):
         for j in range(n_batch):
             val, l = sess.run([img_batch, label_batch])
             # for h in range(batch_size):
@@ -155,8 +155,10 @@ with tf.Session() as sess:
 
             l = one_hot(l,2)
             _, acc = sess.run([train_step, accuracy], feed_dict={xs: val, ys: l, keep_prob: 0.5})
+            # print(val)
+            # print(l)
             loss = sess.run(cross_entropy, feed_dict = {xs: val, ys: l, keep_prob: 1})
-            print("batch:[%4d] , accuracy:[%.8f], loss:[%.8f]" % (j, acc,loss) )
+            #print("batch:[%4d] , accuracy:[%.8f], loss:[%.8f]" % (j, acc,loss) )
         print("Epoch:[%4d] , accuracy:[%.8f], loss:[%.8f]" % (i, acc,loss) )
         acc_list.append(acc)
     val, l = sess.run([img_test, label_test])

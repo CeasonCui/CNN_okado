@@ -2,8 +2,14 @@ from __future__ import print_function
 import tensorflow as tf
 from tensorflow.examples.tutorials.mnist import input_data
 # number 1 to 10 data
+import os
+from PIL import Image  
+import matplotlib.pyplot as plt
+import numpy as np
+import ReadOwnData
 mnist = input_data.read_data_sets('MNIST_data', one_hot=True)
 
+acc_list = []
 channel = 32
 def compute_accuracy(v_xs, v_ys):
     global prediction
@@ -92,9 +98,9 @@ with tf.name_scope('Accuracy'):
 sess = tf.Session()
 # important step
 # tf.initialize_all_variables() no long valid from
-merged = tf.summary.merge_all()
-train_writer = tf.summary.FileWriter("logs/train", sess.graph)
-test_writer = tf.summary.FileWriter("logs/test", sess.graph)
+# merged = tf.summary.merge_all()
+# train_writer = tf.summary.FileWriter("logs/train", sess.graph)
+# test_writer = tf.summary.FileWriter("logs/test", sess.graph)
 if int((tf.__version__).split('.')[1]) < 12 and int((tf.__version__).split('.')[0]) < 1:
     init = tf.initialize_all_variables()
 else:
@@ -105,9 +111,32 @@ for i in range(1000):
     batch_xs, batch_ys = mnist.train.next_batch(100)
     sess.run(train_step, feed_dict={xs: batch_xs, ys: batch_ys, keep_prob: 0.5})
     if i % 50 == 0:
-        test_result = sess.run(merged, feed_dict={xs: mnist.test.images[:1000], ys: mnist.test.labels[:1000], keep_prob: 1})
-        test_writer.add_summary(test_result, i)
-        train_result = sess.run(merged, feed_dict={xs: mnist.train.images[:6000], ys: mnist.train.labels[:6000], keep_prob: 1})
-        train_writer.add_summary(train_result, i)
+        #test_result = sess.run(merged, feed_dict={xs: mnist.test.images[:1000], ys: mnist.test.labels[:1000], keep_prob: 1})
+        #test_writer.add_summary(test_result, i)
+        #train_result = sess.run(merged, feed_dict={xs: mnist.train.images[:6000], ys: mnist.train.labels[:6000], keep_prob: 1})
+        #train_writer.add_summary(train_result, i)
         print(compute_accuracy(
             mnist.test.images[:1000], mnist.test.labels[:1000]))
+        acc_list.append(acc)
+
+for i in range(50):
+    for j in range(60):
+        batch_xs, batch_ys = mnist.train.next_batch(100)
+            # for h in range(batch_size):
+            #     #check_image = tf.reshape(val[h], [64, 64])
+            #     sigle_image = Image.fromarray(val[h], 'L')
+            #     #print(check_image.shape)
+            #     sigle_image.save(cwd + '\\' + str(i) + '_' + str(j)+'_' + str(h) + '_train_'+str(l[h])+'.jpg')#存下图片
+
+        _, acc = sess.run([train_step, accuracy], feed_dict={xs: batch_xs, ys: batch_ys, keep_prob: 0.5})
+        loss = sess.run(cross_entropy, feed_dict = {xs: batch_xs, ys: batch_ys, keep_prob: 1})
+        #print("batch:[%4d] , accuracy:[%.8f], loss:[%.8f]" % (j, acc,loss) )
+   # print("Epoch:[%4d] , accuracy:[%.8f], loss:[%.8f]" % (i, acc,loss) )
+    acc_list.append(acc)
+
+    acc1 = sess.run([accuracy], feed_dict={xs: mnist.test.images[:1000], ys: mnist.test.labels[:1000], keep_prob: 1})
+    print("test accuracy: [%.8f]" % (acc))
+    
+    print (acc_list)
+    plt.plot(acc_list)
+    plt.savefig("acc.jpg")

@@ -101,18 +101,23 @@ img_test, label_test = tf.train.shuffle_batch([img_test, label_test],
 
 
 sess= tf.Session()
-merged = tf.summary.merge_all()
-writer = tf.summary.FileWriter("log/", sess.graph)
+#merged = tf.summary.merge_all()
+#writer = tf.summary.FileWriter("log/", sess.graph)
 #important step
 sess.run(tf.initialize_all_variables())
-
+coord = tf.train.Coordinator() 
+threads=tf.train.start_queue_runners(sess=sess,coord=coord) 
 for i in range(1000):
     val, l = sess.run([img_batch, label_batch])
     l = one_hot(l,2)
-
-    result,_ = sess.run([merged, train_step], feed_dict={xs: val, ys: l, keep_prob: 0.5})
-    writer.add_summary(result,i)
-    l_test = one_hot(label_test,2)
-    acc = sess.run(accuracy, feed_dict={xs:img_test, ys:l_test, keep_prob:0.5})
+    _, acc = sess.run([train_step, accuracy], feed_dict={xs: val, ys: l, keep_prob: 0.5})
+    loss = sess.run(cross_entropy, feed_dict = {xs: val, ys: l, keep_prob: 1})
+    acc_list.append(acc)
     if i % 50 == 0:
-        print(acc)
+        print("batch:[%4d] , accuracy:[%.8f], loss:[%.8f]" % (i, acc,loss) )
+        print (acc_list)
+        plt.plot(acc_list)
+        plt.savefig("acc.jpg")
+
+coord.request_stop()
+coord.join(threads)
