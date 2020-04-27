@@ -27,7 +27,7 @@ def compute_accuracy(v_xs, v_ys):
 
 def weight_variable(shape):
     with tf.name_scope('weight'):
-        initial = tf.truncated_normal(shape, stddev=0.1)
+        initial = tf.contrib.layers.xavier_initializer()
         return tf.Variable(initial)
 
 def bias_variable(shape):
