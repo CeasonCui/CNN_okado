@@ -25,10 +25,11 @@ def compute_accuracy(v_xs, v_ys):
     result = sess.run(accuracy, feed_dict={xs: v_xs, ys: v_ys, keep_prob: 1})
     return result
 
-def weight_variable(shape):
+def weight_variable(shape, name):
     with tf.name_scope('weight'):
-        initial = tf.contrib.layers.xavier_initializer()
-        return tf.Variable(initial)
+        #initial = tf.contrib.layers.xavier_initializer(shape)
+        return tf.get_variable(name=name, shape=shape, initializer = tf.contrib.layers.xavier_initializer(seed = 1))
+        
 
 def bias_variable(shape):
     with tf.name_scope('bias'):
@@ -60,7 +61,7 @@ with tf.name_scope('image_reshape'):
 
 ## conv1 layer ##
 with tf.name_scope('conv1_layer'):
-    W_conv1 = weight_variable([3,3, 1,channel]) # patch 3x3, in size 1, out size 32
+    W_conv1 = weight_variable([3,3, 1,channel], 'cw1') # patch 3x3, in size 1, out size 32
     b_conv1 = bias_variable([channel])
     h_conv1 = tf.sigmoid(conv2d(x_image, W_conv1) + b_conv1) # output size 64x64x32
     h_pool1 = max_pool_2x2(h_conv1)                          # output size 32x32x32
@@ -68,28 +69,28 @@ with tf.name_scope('conv1_layer'):
     # #保存通过激活函数之后的图片
 ## conv2 layer ##
 with tf.name_scope('conv2_layer'):
-    W_conv2 = weight_variable([3,3, channel, channel*2]) # patch 3x3, in size 32, out size 64
+    W_conv2 = weight_variable([3,3, channel, channel*2], 'cw2') # patch 3x3, in size 32, out size 64
     b_conv2 = bias_variable([channel*2])
     h_conv2 = tf.sigmoid(conv2d(h_pool1, W_conv2) + b_conv2) # output size 32x32x64
     h_pool2 = max_pool_2x2(h_conv2)                          # output size 16x16x64
     
 ## conv3 layer ##
 with tf.name_scope('conv3_layer'):
-    W_conv3 = weight_variable([3,3, channel*2, channel*4]) # patch 3x3, in size 64, out size 128
+    W_conv3 = weight_variable([3,3, channel*2, channel*4], 'ccw3') # patch 3x3, in size 64, out size 128
     b_conv3 = bias_variable([channel*4])
     h_conv3 = tf.sigmoid(conv2d(h_pool2, W_conv3) + b_conv3) # output size 16x16x128
     h_pool3 = max_pool_2x2(h_conv3)                          # output size 8x8x128
     
 ## conv4 layer ##
 with tf.name_scope('conv4_layer'):
-    W_conv4 = weight_variable([3,3, channel*4, channel*8]) # patch 3x3, in size 128, out size 256
+    W_conv4 = weight_variable([3,3, channel*4, channel*8], 'cw4') # patch 3x3, in size 128, out size 256
     b_conv4 = bias_variable([channel*8])
     h_conv4 = tf.sigmoid(conv2d(h_pool3, W_conv4) + b_conv4) # output size 8x8x256
     h_pool4 = max_pool_2x2(h_conv4)                          # output size 4x4x256
     
 ## fc1 layer ##
 with tf.name_scope('fc1_layer'): 
-    W_fc1 = weight_variable([4*4*channel*8, 2])
+    W_fc1 = weight_variable([4*4*channel*8, 2],'fcw1')
     b_fc1 = bias_variable([2])
     # [n_samples, 4, 4, 256] ->> [n_samples, 4*4*256]
     h_pool2_flat = tf.reshape(h_pool4, [-1, 4*4*channel*8])
@@ -98,7 +99,7 @@ with tf.name_scope('fc1_layer'):
 
 ## fc2 layer ##
 with tf.name_scope('fc2_layer'):
-    W_fc2 = weight_variable([2, 2])
+    W_fc2 = weight_variable([2, 2], 'fcw2')
     b_fc2 = bias_variable([2])
     pre_mul=tf.matmul(h_fc1_drop, W_fc2) + b_fc2
     prediction = tf.sigmoid(tf.nn.softmax(tf.matmul(h_fc1_drop, W_fc2) + b_fc2))
@@ -110,7 +111,7 @@ with tf.name_scope('loss'):
     tf.summary.scalar('loss',cross_entropy)
 
 with tf.name_scope('optimizer'):
-    train_step = tf.train.AdamOptimizer(0.001).minimize(cross_entropy)
+    train_step = tf.train.AdamOptimizer(0.1).minimize(cross_entropy)
 
 with tf.name_scope('Accuracy'):
     correct_prediction = tf.equal(tf.argmax(prediction,1), tf.argmax(ys,1))
