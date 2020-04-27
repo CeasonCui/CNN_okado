@@ -162,7 +162,7 @@ with tf.Session() as sess:
         #print("Epoch:[%4d] , accuracy:[%.8f], loss:[%.8f]" % (i, acc,loss) )
         #acc_list.append(acc)
         val_test, l_test = sess.run([img_test, label_test])
-        l = one_hot(l,2)
+        l_test = one_hot(l_test,2)
         #print(l)
         loss_test, acc_test = sess.run([cross_entropy,accuracy], feed_dict={xs: val_test, ys: l_test, keep_prob: 1})
         #print(y)
