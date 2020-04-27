@@ -72,26 +72,26 @@ with tf.name_scope('conv2_layer'):
     h_conv2 = tf.nn.relu(conv2d(h_pool1, W_conv2) + b_conv2) # output size 32x32x64
     h_pool2 = max_pool_2x2(h_conv2)                          # output size 16x16x64
     
-# ## conv3 layer ##
-# with tf.name_scope('conv3_layer'):
-#     W_conv3 = weight_variable([3,3, channel*2, channel*4]) # patch 3x3, in size 64, out size 128
-#     b_conv3 = bias_variable([channel*4])
-#     h_conv3 = tf.nn.relu(conv2d(h_pool2, W_conv3) + b_conv3) # output size 16x16x128
-#     h_pool3 = max_pool_2x2(h_conv3)                          # output size 8x8x128
+## conv3 layer ##
+with tf.name_scope('conv3_layer'):
+    W_conv3 = weight_variable([3,3, channel*2, channel*4]) # patch 3x3, in size 64, out size 128
+    b_conv3 = bias_variable([channel*4])
+    h_conv3 = tf.nn.relu(conv2d(h_pool2, W_conv3) + b_conv3) # output size 16x16x128
+    h_pool3 = max_pool_2x2(h_conv3)                          # output size 8x8x128
     
-# ## conv4 layer ##
-# with tf.name_scope('conv4_layer'):
-#     W_conv4 = weight_variable([3,3, channel*4, channel*8]) # patch 3x3, in size 128, out size 256
-#     b_conv4 = bias_variable([channel*8])
-#     h_conv4 = tf.nn.relu(conv2d(h_pool3, W_conv4) + b_conv4) # output size 8x8x256
-#     h_pool4 = max_pool_2x2(h_conv4)                          # output size 4x4x256
+## conv4 layer ##
+with tf.name_scope('conv4_layer'):
+    W_conv4 = weight_variable([3,3, channel*4, channel*8]) # patch 3x3, in size 128, out size 256
+    b_conv4 = bias_variable([channel*8])
+    h_conv4 = tf.nn.relu(conv2d(h_pool3, W_conv4) + b_conv4) # output size 8x8x256
+    h_pool4 = max_pool_2x2(h_conv4)                          # output size 4x4x256
     
 ## fc1 layer ##
 with tf.name_scope('fc1_layer'):
-    W_fc1 = weight_variable([16*16*channel*2, 2])
+    W_fc1 = weight_variable([4*4*channel*8, 2])
     b_fc1 = bias_variable([2])
     # [n_samples, 4, 4, 256] ->> [n_samples, 4*4*256]
-    h_pool2_flat = tf.reshape(h_pool2, [-1, 16*16*channel*2])
+    h_pool2_flat = tf.reshape(h_pool4, [-1, 4*4*channel*8])
     h_fc1 = tf.nn.relu(tf.matmul(h_pool2_flat, W_fc1) + b_fc1)
     h_fc1_drop = tf.nn.dropout(h_fc1, keep_prob)
 
@@ -176,3 +176,51 @@ with tf.Session() as sess:
 
     coord.request_stop()
     coord.join(threads)
+
+
+
+    # imput image
+    fig2,ax2 = plt.subplots(figsize=(2,2))
+    ax2.imshow(np.reshape(img[11], (64, 64)))
+    plt.show()
+    
+    # 第一层的卷积输出的特征图
+    input_image = img[11:12]
+    conv1_16 = sess.run(h_conv1, feed_dict={xs:input_image})     # [1, 64, 64 ,32] 
+    conv1_transpose = sess.run(tf.transpose(conv1_16, [3, 0, 1, 2]))
+    fig3,ax3 = plt.subplots(nrows=1, ncols=32, figsize = (32,1))
+    for i in range(32):
+        ax3[i].imshow(conv1_transpose[i][0])                      # tensor的切片[row, column]
+     
+    plt.title('Conv1 32x64x64')
+    plt.show()
+    
+    # # 第一层池化后的特征图
+    # pool1_16 = sess.run(h_pool1, feed_dict={x:input_image})     # [1, 14, 14, 16]
+    # pool1_transpose = sess.run(tf.transpose(pool1_16, [3, 0, 1, 2]))
+    # fig4,ax4 = plt.subplots(nrows=1, ncols=16, figsize=(16,1))
+    # for i in range(16):
+    #     ax4[i].imshow(pool1_transpose[i][0])
+     
+    # plt.title('Pool1 16x14x14')
+    # plt.show()
+    
+    # # 第二层卷积输出特征图
+    # conv2_32 = sess.run(h_conv2, feed_dict={x:input_image})          # [1, 14, 14, 32]
+    # conv2_transpose = sess.run(tf.transpose(conv2_32, [3, 0, 1, 2]))
+    # fig5,ax5 = plt.subplots(nrows=1, ncols=32, figsize = (32, 1))
+    # for i in range(32):
+    #     ax5[i].imshow(conv2_transpose[i][0])
+    # plt.title('Conv2 32x14x14')
+    # plt.show()
+    
+    # # 第二层池化后的特征图
+    # pool2_32 = sess.run(h_pool2, feed_dict={x:input_image})         #[1, 7, 7, 32]
+    # pool2_transpose = sess.run(tf.transpose(pool2_32, [3, 0, 1, 2]))
+    # fig6,ax6 = plt.subplots(nrows=1, ncols=32, figsize = (32, 1))
+    # plt.title('Pool2 32x7x7')
+    # for i in range(32):
+    #     ax6[i].imshow(pool2_transpose[i][0])
+    
+    # plt.show()
+
