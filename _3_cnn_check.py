@@ -83,7 +83,7 @@ with tf.name_scope('fc2_layer'):
 
 # the error between prediction and real data
 with tf.name_scope('loss'):
-    cross_entropy = tf.reduce_mean(-tf.reduce_sum(ys * tf.log(prediction),
+    cross_entropy = tf.reduce_mean(-tf.reduce_sum(ys * tf.log(prediction + 1e-7),
                                               reduction_indices=[1]))       # loss
     tf.summary.scalar('loss',cross_entropy)
 
@@ -109,6 +109,8 @@ sess.run(init)
 
 for i in range(1000):
     batch_xs, batch_ys = mnist.train.next_batch(100)
+    # print('batch_xs:'+batch_xs.dtype)
+    # print('batch_ys:'+type(batch_ys))
     sess.run(train_step, feed_dict={xs: batch_xs, ys: batch_ys, keep_prob: 0.5})
     if i % 50 == 0:
         #test_result = sess.run(merged, feed_dict={xs: mnist.test.images[:1000], ys: mnist.test.labels[:1000], keep_prob: 1})

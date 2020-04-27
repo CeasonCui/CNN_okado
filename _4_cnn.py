@@ -88,7 +88,7 @@ with tf.name_scope('conv4_layer'):
     h_pool4 = max_pool_2x2(h_conv4)                          # output size 4x4x256
     
 ## fc1 layer ##
-with tf.name_scope('fc1_layer'):
+with tf.name_scope('fc1_layer'): 
     W_fc1 = weight_variable([4*4*channel*8, 2])
     b_fc1 = bias_variable([2])
     # [n_samples, 4, 4, 256] ->> [n_samples, 4*4*256]
